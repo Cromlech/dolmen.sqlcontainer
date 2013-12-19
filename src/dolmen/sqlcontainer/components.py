@@ -3,7 +3,7 @@
 from cromlech.sqlalchemy import get_session
 from zope.location import Location, LocationProxy, locate
 from zope.interface import implementer
-from .interfaces ISQLContainer
+from .interfaces import ISQLContainer
 
 
 @implementer(ISQLContainer)
@@ -30,7 +30,7 @@ class SQLContainer(Location):
         else:
             key = id
 
-         model = self.session.query(self.model).get(key)
+        model = self.session.query(self.model).get(key)
         
         if model is None:
             raise KeyError(key)
