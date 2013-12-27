@@ -20,7 +20,7 @@ class SQLContainer(Location):
     @property
     def session(self):
         return get_session(self.db_key)
-        
+
     def __getitem__(self, id):
         if self.key_converter is not None:
             try:
@@ -31,7 +31,7 @@ class SQLContainer(Location):
             key = id
 
         model = self.session.query(self.model).get(key)
-        
+
         if model is None:
             raise KeyError(key)
         proxy = LocationProxy(model)
@@ -40,7 +40,7 @@ class SQLContainer(Location):
 
     def query_filters(self, query):
         return query
-        
+
     def __iter__(self):
         models = self.query_filters(self.session.query(self.model))
         return iter([LocationProxy(model, self, str(model.id))
