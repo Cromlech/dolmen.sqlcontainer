@@ -7,15 +7,20 @@ version = '0.1'
 readme = open('README.txt').read()
 history = open(join('docs', 'HISTORY.txt')).read()
 
+
 install_requires = [
     'cromlech.browser >= 0.5',
+    'cromlech.sqlalchemy',
     'setuptools',
     'zope.interface',
+    'zope.location',
     ]
+
 
 tests_require = [
     'zope.testing',
     ]
+
 
 setup(name='dolmen.sqlcontainer',
       version=version,
