@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from cromlech.sqlalchemy import get_session
-from zope.location import Location, LocationProxy, locate
+from zope.location import ILocation, Location, LocationProxy, locate
 from zope.interface import implementer
 from .interfaces import ISQLContainer
 
@@ -30,11 +30,13 @@ class SQLContainer(Location):
         else:
             key = id
 
-        model = self.session.query(self.model).get(key)
-
+        model = self.query_filters(self.session.query(self.model)).get(key)
         if model is None:
             raise KeyError(key)
-        proxy = LocationProxy(model)
+
+        proxy = ILocation(model, None)
+        if proxy is None:
+            proxy = LocationProxy(model)
         locate(proxy, self, str(id))
         return proxy
 
