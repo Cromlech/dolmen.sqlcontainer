@@ -10,26 +10,24 @@ from .interfaces import ISQLContainer
 class SQLContainer(Location):
 
     model = None
-    key_converter = None
 
     def __init__(self, parent, name, db_key):
         self.__parent__ = parent
         self.__name__ = name
         self.db_key = db_key
 
+    def key_reverse(self, obj):
+        return obj.id
+
+    def key_converter(self, id):
+        return id
+
     @property
     def session(self):
         return get_session(self.db_key)
 
     def __getitem__(self, id):
-        if self.key_converter is not None:
-            try:
-                key = self.key_converter(id)
-            except ValueError as e:
-                raise KeyError(id)
-        else:
-            key = id
-
+        key = self.key_converter(id)
         model = self.query_filters(self.session.query(self.model)).get(key)
         if model is None:
             raise KeyError(key)
@@ -45,8 +43,14 @@ class SQLContainer(Location):
 
     def __iter__(self):
         models = self.query_filters(self.session.query(self.model))
-        return iter([LocationProxy(model, self, str(model.id))
-                     for model in models])
+        for model in models:
+            proxy = ILocation(model, None)
+            if proxy is None:
+                proxy = LocationProxy(model)
+
+            id = self.key_reverse(model)
+            locate(proxy, self, id)
+            yield proxy
 
     def add(self, item):
         try:
