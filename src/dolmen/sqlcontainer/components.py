@@ -17,7 +17,7 @@ class SQLContainer(Location):
         self.db_key = db_key
 
     def key_reverse(self, obj):
-        return obj.id
+        return str(obj.id)
 
     def key_converter(self, id):
         return id
@@ -27,15 +27,18 @@ class SQLContainer(Location):
         return get_session(self.db_key)
 
     def __getitem__(self, id):
-        key = self.key_converter(id)
+        try:
+            key = self.key_converter(id)
+        except ValueError:
+            return None
         model = self.query_filters(self.session.query(self.model)).get(key)
         if model is None:
             raise KeyError(key)
 
-        proxy = ILocation(model, None)
+        proxy = ILocation(model, default=None)
         if proxy is None:
             proxy = LocationProxy(model)
-        locate(proxy, self, str(id))
+        locate(proxy, self, self.key_reverse(model))
         return proxy
 
     def query_filters(self, query):
@@ -47,9 +50,7 @@ class SQLContainer(Location):
             proxy = ILocation(model, None)
             if proxy is None:
                 proxy = LocationProxy(model)
-
-            id = self.key_reverse(model)
-            locate(proxy, self, id)
+            locate(proxy, self, self.key_reverse(model))
             yield proxy
 
     def add(self, item):
