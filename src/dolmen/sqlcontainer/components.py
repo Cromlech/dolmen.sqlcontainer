@@ -35,7 +35,7 @@ class SQLContainer(Location):
         if model is None:
             raise KeyError(key)
 
-        proxy = ILocation(model, default=None)
+        proxy = ILocation(model, None)
         if proxy is None:
             proxy = LocationProxy(model)
         locate(proxy, self, self.key_reverse(model))
