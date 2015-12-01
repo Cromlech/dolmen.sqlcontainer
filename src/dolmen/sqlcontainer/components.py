@@ -47,7 +47,7 @@ class SQLContainer(Location):
     def __iter__(self):
         models = self.query_filters(self.session.query(self.model)).all()
         for model in models:
-            proxy = ILocation(model, default=None)
+            proxy = ILocation(model, None)
             if proxy is None:
                 proxy = LocationProxy(model)
             locate(proxy, self, self.key_reverse(model))
