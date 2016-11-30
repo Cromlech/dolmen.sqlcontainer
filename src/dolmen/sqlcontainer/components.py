@@ -3,6 +3,7 @@
 from cromlech.sqlalchemy import get_session
 from zope.location import ILocation, Location, LocationProxy, locate
 from zope.interface import implementer
+from zope.interface.interfaces import ComponentLookupError
 from .interfaces import ISQLContainer
 
 
@@ -35,8 +36,9 @@ class SQLContainer(Location):
         if model is None:
             raise KeyError(key)
 
-        proxy = ILocation(model, None)
-        if proxy is None:
+        try:
+            proxy = ILocation(model)
+        except ComponentLookupError:
             proxy = LocationProxy(model)
         locate(proxy, self, self.key_reverse(model))
         return proxy
@@ -47,8 +49,9 @@ class SQLContainer(Location):
     def __iter__(self):
         models = self.query_filters(self.session.query(self.model)).all()
         for model in models:
-            proxy = ILocation(model, None)
-            if proxy is None:
+            try:
+                proxy = ILocation(model)
+            except ComponentLookupError:
                 proxy = LocationProxy(model)
             locate(proxy, self, self.key_reverse(model))
             yield proxy
@@ -56,7 +59,7 @@ class SQLContainer(Location):
     def add(self, item):
         try:
             self.session.add(item)
-        except Exception, e:
+        except Exception as e:
             # This might be a bit too generic
             return e
 
