@@ -49,12 +49,12 @@ class SQLContainer(Location):
     def __iter__(self):
         models = self.query_filters(self.session.query(self.model))
         for model in models:
-	try:
-            proxy = ILocation(model)
-        except ComponentLookupError:
-	    proxy = LocationProxy(model)
-        locate(proxy, self, self.key_reverse(model))
-        yield proxy
+	    try:
+                proxy = ILocation(model)
+            except ComponentLookupError:
+	        proxy = LocationProxy(model)
+            locate(proxy, self, self.key_reverse(model))
+            yield proxy
 
     def __len__(self):
         return self.query_filters(self.session.query(self.model)).count()
@@ -67,8 +67,8 @@ class SQLContainer(Location):
                proxy = ILocation(model)
            except ComponentLookupError:
                proxy = LocationProxy(model)
-           locate(proxy, self, self.key_reverse(model))
-           yield proxy
+            locate(proxy, self, self.key_reverse(model))
+            yield proxy
 
     def add(self, item):
         try:
