@@ -3,6 +3,7 @@
 from cromlech.sqlalchemy import get_session
 from zope.location import ILocation, Location, LocationProxy, locate
 from zope.interface import implementer
+from zope.interface.interfaces import ComponentLookupError
 from .interfaces import ISQLContainer
 
 
@@ -31,12 +32,13 @@ class SQLContainer(Location):
             key = self.key_converter(id)
         except ValueError:
             return None
-        model = self.session.query(self.model).get(key)
+        model = self.query_filters(session.query(self.model)).get(key)
         if model is None:
             raise KeyError(key)
 
-        proxy = ILocation(model, None)
-        if proxy is None:
+        try:
+            proxy = ILocation(model)
+        except ComponentLookupError:
             proxy = LocationProxy(model)
         locate(proxy, self, self.key_reverse(model))
         return proxy
@@ -47,11 +49,12 @@ class SQLContainer(Location):
     def __iter__(self):
         models = self.query_filters(self.session.query(self.model))
         for model in models:
-            proxy = ILocation(model, None)
-            if proxy is None:
-                proxy = LocationProxy(model)
-            locate(proxy, self, self.key_reverse(model))
-            yield proxy
+	try:
+            proxy = ILocation(model)
+        except ComponentLookupError:
+	    proxy = LocationProxy(model)
+        locate(proxy, self, self.key_reverse(model))
+        yield proxy
 
     def __len__(self):
         return self.query_filters(self.session.query(self.model)).count()
@@ -60,8 +63,9 @@ class SQLContainer(Location):
        models = self.query_filters(
            self.session.query(self.model)).limit(size).offset(start)
        for model in models:
-           proxy = ILocation(model, None)
-           if proxy is None:
+           try:
+               proxy = ILocation(model)
+           except ComponentLookupError:
                proxy = LocationProxy(model)
            locate(proxy, self, self.key_reverse(model))
            yield proxy
@@ -69,7 +73,7 @@ class SQLContainer(Location):
     def add(self, item):
         try:
             self.session.add(item)
-        except Exception, e:
+        except Exception as e:
             # This might be a bit too generic
             return e
 
