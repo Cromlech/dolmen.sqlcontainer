@@ -31,7 +31,7 @@ class SQLContainer(Location):
             key = self.key_converter(id)
         except ValueError:
             return None
-        model = self.query_filters(self.session.query(self.model)).get(key)
+        model = self.session.query(self.model).get(key)
         if model is None:
             raise KeyError(key)
 
@@ -45,13 +45,26 @@ class SQLContainer(Location):
         return query
 
     def __iter__(self):
-        models = self.query_filters(self.session.query(self.model)).all()
+        models = self.query_filters(self.session.query(self.model))
         for model in models:
-            proxy = ILocation(model, default=None)
+            proxy = ILocation(model, None)
             if proxy is None:
                 proxy = LocationProxy(model)
             locate(proxy, self, self.key_reverse(model))
             yield proxy
+
+    def __len__(self):
+        return self.query_filters(self.session.query(self.model)).count()
+
+    def slice(self, start, size):
+       models = self.query_filters(
+           self.session.query(self.model)).limit(size).offset(start)
+       for model in models:
+           proxy = ILocation(model, None)
+           if proxy is None:
+               proxy = LocationProxy(model)
+           locate(proxy, self, self.key_reverse(model))
+           yield proxy
 
     def add(self, item):
         try:
