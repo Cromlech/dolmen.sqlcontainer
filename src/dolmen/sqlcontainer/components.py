@@ -67,8 +67,8 @@ class SQLContainer(Location):
                proxy = ILocation(model)
            except ComponentLookupError:
                proxy = LocationProxy(model)
-            locate(proxy, self, self.key_reverse(model))
-            yield proxy
+           locate(proxy, self, self.key_reverse(model))
+           yield proxy
 
     def add(self, item):
         try:
