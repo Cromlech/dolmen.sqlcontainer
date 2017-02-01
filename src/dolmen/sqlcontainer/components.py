@@ -32,7 +32,7 @@ class SQLContainer(Location):
             key = self.key_converter(id)
         except ValueError:
             return None
-        model = self.query_filters(session.query(self.model)).get(key)
+        model = self.session.query(self.model).get(key)
         if model is None:
             raise KeyError(key)
 
@@ -49,10 +49,10 @@ class SQLContainer(Location):
     def __iter__(self):
         models = self.query_filters(self.session.query(self.model))
         for model in models:
-	    try:
+            try:
                 proxy = ILocation(model)
             except ComponentLookupError:
-	        proxy = LocationProxy(model)
+                proxy = LocationProxy(model)
             locate(proxy, self, self.key_reverse(model))
             yield proxy
 
