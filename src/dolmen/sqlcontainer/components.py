@@ -2,6 +2,7 @@
 
 from zope.location import ILocation, Location, LocationProxy, locate
 from zope.interface import implementer
+from zope.interface.interfaces import ComponentLookupError
 from .interfaces import ISQLContainer
 
 
@@ -50,7 +51,7 @@ class SQLContainer(Location):
         return query
 
     def __iter__(self):
-        models = self.query_filters(self.session.query(self.model)).all()
+        models = self.query_filters(self.session.query(self.model))
         for model in models:
             if not ILocation.providedBy(model):
                 model = LocationProxy(model)
@@ -59,6 +60,15 @@ class SQLContainer(Location):
 
     def __len__(self):
         return self.query_filters(self.session.query(self.model)).count()
+
+    def slice(self, start, size):
+       models = self.query_filters(
+           self.session.query(self.model)).limit(size).offset(start)
+       for model in models:
+           if not ILocation.providedBy(model):
+               model = LocationProxy(model)
+           locate(model, self, self.key_reverse(model))
+           yield model
 
     def add(self, item):
         try:

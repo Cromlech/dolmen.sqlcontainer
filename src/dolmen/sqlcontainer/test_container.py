@@ -66,11 +66,32 @@ def test_container(session_factory):
 
     item = container[1]  # using the id directly
     assert item == content
-    
+
+    # Location
+    assert item.__parent__ == container
+    assert item.__name__ == '1'  # URL friendly
+
     # Iteration
     items = list(container)
     assert items == [content]
 
+    # Add another item
+    content2 = SomeClass(name='another test')
+    container.add(content2)
+    session.commit()
+    
+    # Slices
+    items = list(container.slice(0, 1))
+    assert len(items) == 1
+    assert items[0] == content
+
+    items = list(container.slice(0, 2))
+    assert len(items) == 2
+    assert items == [content, content2]
+    
     # Deletion
     container.delete(content)
+    assert len(container) == 1
+
+    container.delete(content2)
     assert len(container) == 0
