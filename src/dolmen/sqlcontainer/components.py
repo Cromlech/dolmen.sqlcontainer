@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from cromlech.sqlalchemy import get_session
 from zope.location import ILocation, Location, LocationProxy, locate
 from zope.interface import implementer
 from .interfaces import ISQLContainer
@@ -11,35 +10,41 @@ class SQLContainer(Location):
 
     model = None
 
-    def __init__(self, parent, name, db_key):
+    def __init__(self, session_getter, parent=None, name=None):
         self.__parent__ = parent
         self.__name__ = name
-        self.db_key = db_key
+        self.get_session = session_getter
 
     def key_reverse(self, obj):
+        """Customize if the primary_key is not "id" or to plug in
+        the wanted behavior.
+        """
         return str(obj.id)
 
     def key_converter(self, id):
-        return id
+        """Customize to plug in the wanted behavior.
+        """
+        return int(id)
 
     @property
     def session(self):
-        return get_session(self.db_key)
+        return self.get_session()
 
     def __getitem__(self, id):
         try:
             key = self.key_converter(id)
         except ValueError:
             return None
+
         model = self.query_filters(self.session.query(self.model)).get(key)
         if model is None:
             raise KeyError(key)
 
-        proxy = ILocation(model, default=None)
-        if proxy is None:
-            proxy = LocationProxy(model)
-        locate(proxy, self, self.key_reverse(model))
-        return proxy
+        if not ILocation.providedBy(model):
+            model = LocationProxy(model)
+
+        locate(model, self, self.key_reverse(model))
+        return model
 
     def query_filters(self, query):
         return query
@@ -47,16 +52,18 @@ class SQLContainer(Location):
     def __iter__(self):
         models = self.query_filters(self.session.query(self.model)).all()
         for model in models:
-            proxy = ILocation(model, None)
-            if proxy is None:
-                proxy = LocationProxy(model)
-            locate(proxy, self, self.key_reverse(model))
-            yield proxy
+            if not ILocation.providedBy(model):
+                model = LocationProxy(model)
+            locate(model, self, self.key_reverse(model))
+            yield model
+
+    def __len__(self):
+        return self.query_filters(self.session.query(self.model)).count()
 
     def add(self, item):
         try:
             self.session.add(item)
-        except Exception, e:
+        except Exception as e:
             # This might be a bit too generic
             return e
 

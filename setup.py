@@ -3,22 +3,20 @@
 from os.path import join
 from setuptools import setup, find_packages
 
-version = '0.2'
+version = '0.3'
 readme = open('README.txt').read()
 history = open(join('docs', 'HISTORY.txt')).read()
 
 
 install_requires = [
-    'cromlech.browser >= 0.5',
-    'cromlech.sqlalchemy',
-    'setuptools',
+    'sqlalchemy',  # While not used directly, can't work without it.
     'zope.interface',
     'zope.location',
     ]
 
 
 tests_require = [
-    'zope.testing',
+    'pytest',
     ]
 
 
