@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.3 (2018-12-20)
+----------------
+
+- Added slicing on the container
+- Changed the Container init to take a session_getter.
+
 0.2 (2014-03-14)
 ----------------
 
