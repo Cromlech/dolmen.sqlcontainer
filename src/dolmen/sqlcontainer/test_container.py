@@ -24,7 +24,7 @@ configs = {
 class SomeClass(Base):
     __tablename__ = 'some_table'
     id = Column(Integer, primary_key=True)
-    name =  Column(String(50))
+    name = Column(String(50))
 
 
 @pytest.fixture
@@ -38,11 +38,11 @@ def session_factory():
 
 
 def test_container(session_factory):
-    
+
     # We create the container
     container = SQLContainer(session_factory)
     container.model = SomeClass
-    
+
     # We can now add content
     content = SomeClass(name='test')
     container.add(content)
@@ -59,7 +59,7 @@ def test_container(session_factory):
 
     # Resolve the key from URL
     assert container.key_converter('1') == 1
-    
+
     # getter
     item = container['1']  # using the id from an URL
     assert item == content
@@ -79,7 +79,7 @@ def test_container(session_factory):
     content2 = SomeClass(name='another test')
     container.add(content2)
     session.commit()
-    
+
     # Slices
     items = list(container.slice(0, 1))
     assert len(items) == 1
@@ -88,7 +88,7 @@ def test_container(session_factory):
     items = list(container.slice(0, 2))
     assert len(items) == 2
     assert items == [content, content2]
-    
+
     # Deletion
     container.delete(content)
     assert len(container) == 1

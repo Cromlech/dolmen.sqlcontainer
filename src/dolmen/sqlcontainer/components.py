@@ -62,13 +62,13 @@ class SQLContainer(Location):
         return self.query_filters(self.session.query(self.model)).count()
 
     def slice(self, start, size):
-       models = self.query_filters(
-           self.session.query(self.model)).limit(size).offset(start)
-       for model in models:
-           if not ILocation.providedBy(model):
-               model = LocationProxy(model)
-           locate(model, self, self.key_reverse(model))
-           yield model
+        models = self.query_filters(
+            self.session.query(self.model)).limit(size).offset(start)
+        for model in models:
+            if not ILocation.providedBy(model):
+                model = LocationProxy(model)
+            locate(model, self, self.key_reverse(model))
+            yield model
 
     def add(self, item):
         try:
